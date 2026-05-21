@@ -20,10 +20,6 @@ Corepack reads the `packageManager` field in `package.json` and automatically us
 ## Setup
 
 ```bash
-# First install (generates yarn.lock)
-YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
-
-# Subsequent installs (lockfile must match)
 yarn install
 ```
 
