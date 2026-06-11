@@ -58,13 +58,27 @@ yarn typecheck
 
 ## Consumer usage (webpack 5 / Vite)
 
-Install (or link locally during development):
+Install:
 
 ```bash
 yarn add @veupathdb/plasmofast
-# or for local development:
-yarn link /path/to/plasmoFAST
 ```
+
+### Local development
+
+Add a `portal:` resolution to the consuming project's `package.json` to point directly at your local checkout:
+
+```json
+"resolutions": {
+  "@veupathdb/plasmofast": "portal:/path/to/plasmoFAST"
+}
+```
+
+Then run `yarn` in the consuming project. Yarn will trigger the `prepare` script in plasmoFAST automatically, so `dist/` is always up to date. After making further changes in plasmoFAST, re-run `yarn` in the consuming project to rebuild.
+
+Remove the `resolutions` entry and `yarn add @veupathdb/plasmofast@x.y.z` when you're ready to switch back to the published version.
+
+If a freshly published version is blocked by Yarn's `npmMinimalAgeGate`, you can temporarily set it to `0` in `.yarnrc.yml`, run `yarn add @veupathdb/plasmofast@x.y.z`, then revert. Note that this disables the gate for all packages resolved during that install, not just plasmofast.
 
 Import and use:
 

@@ -17,6 +17,7 @@
   ],
   "scripts": {
     "build": "node scripts/build.mjs",
+    "prepare": "node scripts/build.mjs",
     "dev": "vite --config test-app/vite.config.ts",
     "test": "jest",
     "typecheck": "tsc --noEmit"
