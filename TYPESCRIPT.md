@@ -74,7 +74,7 @@ Add a `portal:` resolution to the consuming project's `package.json` to point di
 }
 ```
 
-Then run `yarn` in the consuming project. Yarn will trigger the `prepare` script in plasmoFAST automatically, so `dist/` is always up to date. After making further changes in plasmoFAST, re-run `yarn` in the consuming project to rebuild.
+Then run `yarn build` in the plasmoFAST repo and `yarn` in the consuming project. After making further changes in plasmoFAST, run `yarn build` again before testing in the consuming project.
 
 Remove the `resolutions` entry and `yarn add @veupathdb/plasmofast@x.y.z` when you're ready to switch back to the published version.
 
