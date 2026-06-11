@@ -78,7 +78,13 @@ Then run `yarn` in the consuming project. Yarn will trigger the `prepare` script
 
 Remove the `resolutions` entry and `yarn add @veupathdb/plasmofast@x.y.z` when you're ready to switch back to the published version.
 
-If a freshly published version is blocked by Yarn's `npmMinimalAgeGate`, you can temporarily set it to `0` in `.yarnrc.yml`, run `yarn add @veupathdb/plasmofast@x.y.z`, then revert. Note that this disables the gate for all packages resolved during that install, not just plasmofast.
+If a freshly published version is blocked by Yarn's `npmMinimalAgeGate`, you can bypass it for the install (unverified — worth testing):
+
+```bash
+YARN_NPM_MINIMAL_AGE_GATE=0 yarn add @veupathdb/plasmofast@x.y.z
+```
+
+Since plasmofast has no runtime dependencies, this resolves exactly one package so the broader gate bypass is not a concern.
 
 Import and use:
 
