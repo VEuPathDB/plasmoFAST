@@ -61,7 +61,7 @@ yarn typecheck
 Install (or link locally during development):
 
 ```bash
-yarn add plasmofast
+yarn add @veupathdb/plasmofast
 # or for local development:
 yarn link /path/to/plasmoFAST
 ```
@@ -69,8 +69,8 @@ yarn link /path/to/plasmoFAST
 Import and use:
 
 ```ts
-import { analyze } from 'plasmofast';
-import type { AnalysisResult, ProgressEvent } from 'plasmofast';
+import { analyze } from '@veupathdb/plasmofast';
+import type { AnalysisResult, ProgressEvent } from '@veupathdb/plasmofast';
 
 const result: AnalysisResult = await analyze(fastqFile, {
   onProgress: ({ bytesRead, totalBytes }: ProgressEvent) => {
