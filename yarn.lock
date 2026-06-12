@@ -1323,6 +1323,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@veupathdb/plasmofast@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@veupathdb/plasmofast@workspace:."
+  dependencies:
+    "@types/jest": "npm:^29.5.14"
+    jest: "npm:^29.7.0"
+    ts-jest: "npm:^29.2.6"
+    typescript: "npm:^5.7.3"
+    vite: "npm:^5.4.19"
+    vite-plugin-dts: "npm:^4.3.0"
+  languageName: unknown
+  linkType: soft
+
 "@volar/language-core@npm:2.4.28, @volar/language-core@npm:~2.4.11":
   version: 2.4.28
   resolution: "@volar/language-core@npm:2.4.28"
@@ -3489,19 +3502,6 @@ __metadata:
   checksum: 10c0/dd9b20682426abaddcac9dc786aa22542e12df15a03dea2afa7bf54da0933358c6c7f545c0c3c1c7b24a2904ab4a451bf4e34a50c6837e458359eea30c257ed4
   languageName: node
   linkType: hard
-
-"plasmofast@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "plasmofast@workspace:."
-  dependencies:
-    "@types/jest": "npm:^29.5.14"
-    jest: "npm:^29.7.0"
-    ts-jest: "npm:^29.2.6"
-    typescript: "npm:^5.7.3"
-    vite: "npm:^5.4.19"
-    vite-plugin-dts: "npm:^4.3.0"
-  languageName: unknown
-  linkType: soft
 
 "postcss@npm:^8.4.43":
   version: 8.5.14
