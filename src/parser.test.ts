@@ -1,4 +1,24 @@
-import { extractSequenceLines } from './parser';
+import { extractSequenceLines, countBytes } from './parser';
+
+function streamOf(chunks: Uint8Array[]): ReadableStream<Uint8Array> {
+  return new ReadableStream({
+    start(controller) {
+      for (const c of chunks) controller.enqueue(c);
+      controller.close();
+    },
+  });
+}
+
+async function drain<T>(stream: ReadableStream<T>): Promise<T[]> {
+  const reader = stream.getReader();
+  const out: T[] = [];
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    out.push(value);
+  }
+  return out;
+}
 
 function chunked(text: string, size: number): string[] {
   const chunks: string[] = [];
@@ -51,5 +71,23 @@ describe('extractSequenceLines', () => {
 
   test('returns empty array for whitespace-only input', () => {
     expect(extractSequenceLines(['\n\n'])).toEqual([]);
+  });
+});
+
+describe('countBytes', () => {
+  test('tallies total bytes flowing through and passes chunks unchanged', async () => {
+    const chunks = [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5])];
+    const { stream, bytesRead } = countBytes(streamOf(chunks));
+
+    const out = await drain(stream);
+
+    expect(out).toEqual(chunks);
+    expect(bytesRead()).toBe(5);
+  });
+
+  test('counts nothing for an empty stream', async () => {
+    const { stream, bytesRead } = countBytes(streamOf([]));
+    await drain(stream);
+    expect(bytesRead()).toBe(0);
   });
 });

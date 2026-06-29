@@ -17,11 +17,11 @@ self.onmessage = async (
       ? await loadReference(referenceUrl)
       : parseReference(defaultRefText);
 
-    const reader = getTextStream(file).getReader();
+    const { stream, bytesRead } = getTextStream(file);
+    const reader = stream.getReader();
     let leftover = '';
     let lineIndex = 0;
     let readCount = 0;
-    let bytesRead = 0;
     const totalBytes = file.size;
 
     while (true) {
@@ -55,8 +55,12 @@ self.onmessage = async (
           }
           readCount++;
           if (readCount % 10_000 === 0) {
-            if (value) bytesRead += value.length;
-            self.postMessage({ type: 'progress', bytesRead, totalBytes });
+            self.postMessage({
+              type: 'progress',
+              bytesRead: bytesRead(),
+              totalBytes,
+              readsProcessed: readCount,
+            });
             if (emitPartial) {
               self.postMessage({ type: 'partial', data: buildResult(ref) });
             }

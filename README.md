@@ -101,8 +101,10 @@ import { analyze } from '@veupathdb/plasmofast';
 import type { AnalysisResult, ProgressEvent } from '@veupathdb/plasmofast';
 
 const result: AnalysisResult = await analyze(fastqFile, {
-  onProgress: ({ bytesRead, totalBytes }: ProgressEvent) => {
-    console.log(`${Math.round(bytesRead / totalBytes * 100)}%`);
+  onProgress: ({ bytesRead, totalBytes, readsProcessed }: ProgressEvent) => {
+    // bytesRead/totalBytes are source bytes (compressed bytes for .gz),
+    // so the percentage is accurate for both .fastq and .fastq.gz.
+    console.log(`${Math.round(bytesRead / totalBytes * 100)}% · ${readsProcessed} reads`);
   },
 });
 

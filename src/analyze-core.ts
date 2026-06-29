@@ -56,7 +56,11 @@ export function runAnalysis(
     worker.onmessage = (event: MessageEvent) => {
       const { type, data, message } = event.data;
       if (type === 'progress') {
-        onProgress?.({ bytesRead: event.data.bytesRead, totalBytes: event.data.totalBytes });
+        onProgress?.({
+          bytesRead: event.data.bytesRead,
+          totalBytes: event.data.totalBytes,
+          readsProcessed: event.data.readsProcessed,
+        });
       } else if (type === 'partial') {
         if (!settled) onPartialResult?.(data as AnalysisResult);
       } else if (type === 'result') {

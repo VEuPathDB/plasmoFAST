@@ -47,10 +47,10 @@ fileInput.addEventListener('change', async () => {
   try {
     const result: AnalysisResult = await analyze(file, {
       signal: controller.signal,
-      onProgress: ({ bytesRead, totalBytes }) => {
+      onProgress: ({ bytesRead, totalBytes, readsProcessed }) => {
         const pct = Math.round((bytesRead / totalBytes) * 100);
         progressBar.value = pct;
-        progressLabel.textContent = `${pct}%`;
+        progressLabel.textContent = `${pct}% · ${readsProcessed.toLocaleString()} reads`;
       },
       onPartialResult: (partial) => {
         renderTable(partial);

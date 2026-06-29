@@ -8,8 +8,12 @@ export type StrainResult = {
 export type AnalysisResult = Record<string, StrainResult>;
 
 export type ProgressEvent = {
+  /** Source bytes consumed so far (compressed bytes for .gz), matching `totalBytes`'s unit. */
   bytesRead: number;
+  /** Total source bytes — `file.size`. For `.gz` this is the compressed size. */
   totalBytes: number;
+  /** Cumulative sequencing reads processed so far. */
+  readsProcessed: number;
 };
 
 export type AnalyzeOptions = {

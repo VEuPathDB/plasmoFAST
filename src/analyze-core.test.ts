@@ -69,18 +69,18 @@ test('resolves with the result and ignores a later abort', async () => {
 
 test('forwards progress events to onProgress', async () => {
   const worker = new FakeWorker();
-  const events: Array<{ bytesRead: number; totalBytes: number }> = [];
+  const events: Array<{ bytesRead: number; totalBytes: number; readsProcessed: number }> = [];
   const promise = runAnalysis(
     fakeFile(),
     { onProgress: (e) => events.push(e) },
     () => worker
   );
 
-  worker.emit({ type: 'progress', bytesRead: 50, totalBytes: 100 });
+  worker.emit({ type: 'progress', bytesRead: 50, totalBytes: 100, readsProcessed: 10_000 });
   worker.emit({ type: 'result', data: SAMPLE_RESULT });
 
   await promise;
-  expect(events).toEqual([{ bytesRead: 50, totalBytes: 100 }]);
+  expect(events).toEqual([{ bytesRead: 50, totalBytes: 100, readsProcessed: 10_000 }]);
 });
 
 test('forwards partial snapshots to onPartialResult without settling the promise', async () => {
