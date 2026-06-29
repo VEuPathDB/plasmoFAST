@@ -15,4 +15,6 @@ export type ProgressEvent = {
 export type AnalyzeOptions = {
   referenceUrl?: string;
   onProgress?: (e: ProgressEvent) => void;
+  /** Abort the analysis early; terminates the worker and rejects the promise. */
+  signal?: AbortSignal;
 };

@@ -8,6 +8,13 @@ const resultsTable = document.getElementById('results-body') as HTMLTableSection
 const errorBox = document.getElementById('error') as HTMLDivElement;
 const status = document.getElementById('status') as HTMLParagraphElement;
 const elapsed = document.getElementById('elapsed') as HTMLParagraphElement;
+const cancelBtn = document.getElementById('cancel-btn') as HTMLButtonElement;
+
+let controller: AbortController | null = null;
+
+cancelBtn.addEventListener('click', () => {
+  controller?.abort();
+});
 
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files?.[0];
@@ -19,6 +26,9 @@ fileInput.addEventListener('change', async () => {
   elapsed.textContent = '';
   status.textContent = 'Analysing…';
 
+  controller = new AbortController();
+  cancelBtn.disabled = false;
+
   const startTime = Date.now();
   const timer = setInterval(() => {
     const secs = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -27,6 +37,7 @@ fileInput.addEventListener('change', async () => {
 
   try {
     const result: AnalysisResult = await analyze(file, {
+      signal: controller.signal,
       onProgress: ({ bytesRead, totalBytes }) => {
         const pct = Math.round((bytesRead / totalBytes) * 100);
         progressBar.value = pct;
@@ -50,7 +61,14 @@ fileInput.addEventListener('change', async () => {
   } catch (err) {
     clearInterval(timer);
     elapsed.textContent = '';
-    errorBox.textContent = String(err);
-    status.textContent = '';
+    if (controller.signal.aborted) {
+      status.textContent = 'Cancelled.';
+    } else {
+      errorBox.textContent = String(err);
+      status.textContent = '';
+    }
+  } finally {
+    cancelBtn.disabled = true;
+    controller = null;
   }
 });
