@@ -1,5 +1,8 @@
 {
   "name": "@veupathdb/plasmofast",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.1.0",
   "description": "Client-side k-mer detection of Plasmodium falciparum lab strains from FASTQ sequencing data",
   "packageManager": "yarn@4.12.0",
