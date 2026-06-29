@@ -109,6 +109,50 @@ const result: AnalysisResult = await analyze(fastqFile, {
 // result: { NF54_3D7: { specific: 12, nonspecific: 3, mixed: 1, lowCoverage: 0 }, ... }
 ```
 
+### Cancellation
+
+Pass an `AbortSignal` to stop an in-flight analysis. Aborting terminates the worker and rejects the promise:
+
+```ts
+const controller = new AbortController();
+// ... wire controller.abort() to a Cancel button ...
+
+try {
+  const result = await analyze(file, { signal: controller.signal });
+} catch (err) {
+  if (controller.signal.aborted) {
+    // cancelled — not a real error
+  } else {
+    throw err;
+  }
+}
+```
+
+### Streaming results & early exit
+
+`onPartialResult` delivers periodic classified snapshots (same shape as the final result) while the file streams. Combine it with the abort signal to stop early once you have a confident call — capture the last snapshot, then `abort()`:
+
+```ts
+const controller = new AbortController();
+let latest: AnalysisResult | undefined;
+
+try {
+  await analyze(file, {
+    signal: controller.signal,
+    onPartialResult: (snapshot) => {
+      latest = snapshot;
+      if (isConfident(snapshot)) controller.abort(); // stop reading the rest of the file
+    },
+  });
+} catch (err) {
+  if (!controller.signal.aborted) throw err;
+}
+
+// `latest` holds the snapshot at the point you decided to stop.
+```
+
+Snapshots are only computed when `onPartialResult` is provided, so omitting it adds no overhead.
+
 The `referenceUrl` option overrides the bundled `reference/25mer_rc_list.tsv` if you need to use an updated reference file:
 
 ```ts

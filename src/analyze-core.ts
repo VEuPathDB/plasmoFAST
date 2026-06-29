@@ -22,7 +22,7 @@ export function runAnalysis(
   options: AnalyzeOptions,
   createWorker: WorkerFactory
 ): Promise<AnalysisResult> {
-  const { referenceUrl, onProgress, signal } = options;
+  const { referenceUrl, onProgress, onPartialResult, signal } = options;
 
   if (!VALID_EXTENSIONS.some((ext) => file.name.endsWith(ext))) {
     return Promise.reject(
@@ -57,6 +57,8 @@ export function runAnalysis(
       const { type, data, message } = event.data;
       if (type === 'progress') {
         onProgress?.({ bytesRead: event.data.bytesRead, totalBytes: event.data.totalBytes });
+      } else if (type === 'partial') {
+        if (!settled) onPartialResult?.(data as AnalysisResult);
       } else if (type === 'result') {
         finish(() => resolve(data as AnalysisResult));
       } else if (type === 'error') {
@@ -73,6 +75,6 @@ export function runAnalysis(
     };
 
     signal?.addEventListener('abort', onAbort);
-    worker.postMessage({ file, referenceUrl });
+    worker.postMessage({ file, referenceUrl, emitPartial: !!onPartialResult });
   });
 }

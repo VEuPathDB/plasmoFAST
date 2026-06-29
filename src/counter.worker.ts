@@ -4,12 +4,13 @@ self.addEventListener('error', (e) => {
 
 import { parseReference, loadReference, BASE_CODE, K, FOURK } from './reference';
 import { getTextStream } from './parser';
-import { getCategory } from './classify';
-import type { AnalysisResult, StrainResult } from './types';
+import { buildResult } from './result';
 import defaultRefText from '../reference/25mer_rc_list.tsv';
 
-self.onmessage = async (event: MessageEvent<{ file: File; referenceUrl?: string }>) => {
-  const { file, referenceUrl } = event.data;
+self.onmessage = async (
+  event: MessageEvent<{ file: File; referenceUrl?: string; emitPartial?: boolean }>
+) => {
+  const { file, referenceUrl, emitPartial } = event.data;
 
   try {
     const ref = referenceUrl
@@ -56,6 +57,9 @@ self.onmessage = async (event: MessageEvent<{ file: File; referenceUrl?: string 
           if (readCount % 10_000 === 0) {
             if (value) bytesRead += value.length;
             self.postMessage({ type: 'progress', bytesRead, totalBytes });
+            if (emitPartial) {
+              self.postMessage({ type: 'partial', data: buildResult(ref) });
+            }
           }
         }
         lineIndex++;
@@ -64,15 +68,7 @@ self.onmessage = async (event: MessageEvent<{ file: File; referenceUrl?: string 
       if (done) break;
     }
 
-    const result: AnalysisResult = {};
-    for (const strain of ref.strains) {
-      result[strain] = { specific: 0, nonspecific: 0, mixed: 0, lowCoverage: 0 };
-    }
-    for (const { specCount, nonspecCount, strain } of ref.positions.values()) {
-      (result[strain] as StrainResult)[getCategory(specCount, nonspecCount)]++;
-    }
-
-    self.postMessage({ type: 'result', data: result });
+    self.postMessage({ type: 'result', data: buildResult(ref) });
   } catch (err) {
     self.postMessage({ type: 'error', message: String(err) });
   }

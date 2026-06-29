@@ -83,6 +83,51 @@ test('forwards progress events to onProgress', async () => {
   expect(events).toEqual([{ bytesRead: 50, totalBytes: 100 }]);
 });
 
+test('forwards partial snapshots to onPartialResult without settling the promise', async () => {
+  const worker = new FakeWorker();
+  const partials: AnalysisResult[] = [];
+  const promise = runAnalysis(
+    fakeFile(),
+    { onPartialResult: (r) => partials.push(r) },
+    () => worker
+  );
+
+  const snapshot: AnalysisResult = {
+    NF54_3D7: { specific: 0, nonspecific: 0, mixed: 1, lowCoverage: 2 },
+  };
+  worker.emit({ type: 'partial', data: snapshot });
+  worker.emit({ type: 'result', data: SAMPLE_RESULT });
+
+  await expect(promise).resolves.toEqual(SAMPLE_RESULT);
+  expect(partials).toEqual([snapshot]);
+});
+
+test('requests partial emission only when onPartialResult is provided', () => {
+  const withCb = new FakeWorker();
+  runAnalysis(fakeFile(), { onPartialResult: () => {} }, () => withCb);
+  expect(withCb.posted[0]).toMatchObject({ emitPartial: true });
+
+  const withoutCb = new FakeWorker();
+  runAnalysis(fakeFile(), {}, () => withoutCb);
+  expect(withoutCb.posted[0]).toMatchObject({ emitPartial: false });
+});
+
+test('ignores a partial snapshot that arrives after the promise has settled', async () => {
+  const worker = new FakeWorker();
+  const partials: AnalysisResult[] = [];
+  const promise = runAnalysis(
+    fakeFile(),
+    { onPartialResult: (r) => partials.push(r) },
+    () => worker
+  );
+
+  worker.emit({ type: 'result', data: SAMPLE_RESULT });
+  await promise;
+  worker.emit({ type: 'partial', data: SAMPLE_RESULT });
+
+  expect(partials).toEqual([]);
+});
+
 test('rejects unsupported file types without creating a worker', async () => {
   let created = false;
   const factory = () => {

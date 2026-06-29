@@ -16,6 +16,15 @@ cancelBtn.addEventListener('click', () => {
   controller?.abort();
 });
 
+function renderTable(result: AnalysisResult): void {
+  resultsTable.innerHTML = '';
+  for (const [strain, counts] of Object.entries(result) as [string, StrainResult][]) {
+    const row = resultsTable.insertRow();
+    [strain, counts.specific, counts.nonspecific, counts.mixed, counts.lowCoverage]
+      .forEach(val => { row.insertCell().textContent = String(val); });
+  }
+}
+
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files?.[0];
   if (!file) return;
@@ -43,17 +52,16 @@ fileInput.addEventListener('change', async () => {
         progressBar.value = pct;
         progressLabel.textContent = `${pct}%`;
       },
+      onPartialResult: (partial) => {
+        renderTable(partial);
+      },
     });
 
     clearInterval(timer);
     const totalSecs = ((Date.now() - startTime) / 1000).toFixed(1);
     elapsed.textContent = `Completed in ${totalSecs}s`;
 
-    for (const [strain, counts] of Object.entries(result) as [string, StrainResult][]) {
-      const row = resultsTable.insertRow();
-      [strain, counts.specific, counts.nonspecific, counts.mixed, counts.lowCoverage]
-        .forEach(val => { row.insertCell().textContent = String(val); });
-    }
+    renderTable(result);
 
     progressBar.value = 100;
     progressLabel.textContent = '100%';
@@ -62,7 +70,7 @@ fileInput.addEventListener('change', async () => {
     clearInterval(timer);
     elapsed.textContent = '';
     if (controller.signal.aborted) {
-      status.textContent = 'Cancelled.';
+      status.textContent = 'Stopped.';
     } else {
       errorBox.textContent = String(err);
       status.textContent = '';
