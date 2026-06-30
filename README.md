@@ -86,7 +86,7 @@ Then run `yarn build` in the plasmoFAST repo and `yarn` in the consuming project
 
 Remove the `resolutions` entry and `yarn add @veupathdb/plasmofast@x.y.z` when you're ready to switch back to the published version.
 
-If a freshly published version is blocked by Yarn's `npmMinimalAgeGate`, you can bypass it for the install (unverified — worth testing):
+If a freshly published version is blocked by Yarn's `npmMinimalAgeGate`, you can bypass it for the install:
 
 ```bash
 YARN_NPM_MINIMAL_AGE_GATE=0 yarn add @veupathdb/plasmofast@x.y.z
