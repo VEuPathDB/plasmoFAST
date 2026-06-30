@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>plasmoFAST — test app</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.4rem; }
+    label { display: block; margin: 1rem 0 0.5rem; }
+    progress { width: 100%; height: 1.2rem; }
+    #progress-label { margin-left: 0.5rem; font-size: 0.9rem; }
+    #error { color: #c00; margin-top: 1rem; white-space: pre-wrap; }
+    #status { color: #555; font-style: italic; }
+    table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.4rem 0.8rem; text-align: right; }
+    th:first-child, td:first-child { text-align: left; }
+    thead { background: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <h1>plasmoFAST — browser test</h1>
+  <p>Drop a <code>.fastq</code> or <code>.fastq.gz</code> file to detect <em>P. falciparum</em> lab strains.</p>
+
+  <label for="file-input">Select FASTQ file:</label>
+  <input id="file-input" type="file" accept=".fastq,.gz" />
+
+  <br /><br />
+  <progress id="progress-bar" max="100" value="0"></progress>
+  <span id="progress-label">0%</span>
+  <br />
+  <button id="cancel-btn" disabled>Stop</button>
+  <p id="status"></p>
+  <p id="elapsed" style="color:#555;font-style:italic;"></p>
+  <div id="error"></div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Strain</th>
+        <th>Specific</th>
+        <th>Nonspecific</th>
+        <th>Mixed</th>
+        <th>Low Coverage</th>
+      </tr>
+    </thead>
+    <tbody id="results-body"></tbody>
+  </table>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>
