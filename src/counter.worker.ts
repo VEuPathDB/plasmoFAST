@@ -72,6 +72,17 @@ self.onmessage = async (
       if (done) break;
     }
 
+    // Flush a final progress message before the result. The throttled progress
+    // above only fires every 10,000 reads, so without this the consumer's last
+    // `readsProcessed` is rounded down to the previous 10k boundary. This emits
+    // the exact final count (and bytesRead → 100%) so the UI shows a precise total.
+    self.postMessage({
+      type: 'progress',
+      bytesRead: bytesRead(),
+      totalBytes,
+      readsProcessed: readCount,
+    });
+
     self.postMessage({ type: 'result', data: buildResult(ref) });
   } catch (err) {
     self.postMessage({ type: 'error', message: String(err) });
