@@ -1,21 +1,173 @@
-# plasmoFAST
-k-mer based tool for detecting Plasmodium falciparum lab strains from sequencing data
+# plasmoFAST — TypeScript Library
 
-Developed using [kmc (v3.2.4)](https://github.com/refresh-bio/KMC), python3 (v3.8.2), pandas, and matplotlib
+A client-side TypeScript library that detects *Plasmodium falciparum* lab strains directly from FASTQ files in the browser. No KMC binary, no Python, no server required.
 
-### File Overview
+## Credits
 
-**run_kmc_new.sh:** Bash script used to run plasmoFAST. First runs kmc on sequencing data and identify frequency of variable positions. Kmc generates a list of all kmers found in sequencing data and their frequency, which is passed to parse_kmc_output.py to determine the frequency of variable positions.
+This library is a client-side TypeScript port of the original **plasmoFAST** tool developed by **Katie Ko** at the Kissinger Lab, University of Georgia.
+
+- Original tool: [ko-katie/plasmoFAST](https://github.com/ko-katie/plasmoFAST)
+- Original method: k-mer counting via [KMC](https://github.com/refresh-bio/KMC) + Python parsing
+- Original documentation: [PYTHON_TOOL.md](PYTHON_TOOL.md)
+
+## How it works
+
+Instead of running KMC to count all k-mers and then filtering, this library counts only the ~10,156 reference 25-mers (from `reference/25mer_rc_list.tsv`) directly from the FASTQ stream. The counting loop runs in a Web Worker so the UI stays responsive. Gzip-compressed `.fastq.gz` files are supported natively via the browser's `DecompressionStream` API.
+
+## Prerequisites
+
+- **Node 24** (recommended — pin with [nvm](https://github.com/nvm-sh/nvm) or [nodenv](https://github.com/nodenv/nodenv))
+- **Yarn** via [Corepack](https://nodejs.org/api/corepack.html) (strongly recommended over npm)
+
+```bash
+corepack enable
+```
+
+Corepack reads the `packageManager` field in `package.json` and automatically uses the correct Yarn version. No global Yarn install needed.
+
+## Setup
+
+```bash
+yarn install
+```
+
+## Development (test app)
+
+```bash
+yarn dev
+```
+
+Opens a local Vite dev server with a minimal file-picker UI. Drop in a `.fastq` or `.fastq.gz` file to test the library end-to-end. Compare results against the Python pipeline on the same file to verify correctness.
+
+## Build (library)
+
+```bash
+yarn build
+```
+
+Outputs to `dist/`:
+- `dist/index.js` — ES module library entry point
+- `dist/index.d.ts` — TypeScript declarations
+- `dist/counter.worker.js` — Web Worker bundle (referenced by `index.js` via `new URL`)
+
+## Tests
+
+```bash
+yarn test
+```
+
+Unit tests cover `classify.ts`, `reference.ts`, and `parser.ts` with small synthetic fixtures. No real sequencing data required.
+
+## Type checking
+
+```bash
+yarn typecheck
+```
+
+## Consumer usage (webpack 5 / Vite)
+
+Install:
+
+```bash
+yarn add @veupathdb/plasmofast
+```
+
+### Local development
+
+Add a `portal:` resolution to the consuming project's `package.json` to point directly at your local checkout:
+
+```json
+"resolutions": {
+  "@veupathdb/plasmofast": "portal:/path/to/plasmoFAST"
+}
+```
+
+Then run `yarn build` in the plasmoFAST repo and `yarn` in the consuming project. After making further changes in plasmoFAST, run `yarn build` again before testing in the consuming project.
+
+Remove the `resolutions` entry and `yarn add @veupathdb/plasmofast@x.y.z` when you're ready to switch back to the published version.
+
+If a freshly published version is blocked by Yarn's `npmMinimalAgeGate`, you can bypass it for the install:
+
+```bash
+YARN_NPM_MINIMAL_AGE_GATE=0 yarn add @veupathdb/plasmofast@x.y.z
+```
+
+Since plasmofast has no runtime dependencies, this resolves exactly one package so the broader gate bypass is not a concern.
+
+Import and use:
+
+```ts
+import { analyze } from '@veupathdb/plasmofast';
+import type { AnalysisResult, ProgressEvent } from '@veupathdb/plasmofast';
+
+const result: AnalysisResult = await analyze(fastqFile, {
+  onProgress: ({ bytesRead, totalBytes, readsProcessed }: ProgressEvent) => {
+    // bytesRead/totalBytes are source bytes (compressed bytes for .gz),
+    // so the percentage is accurate for both .fastq and .fastq.gz.
+    console.log(`${Math.round(bytesRead / totalBytes * 100)}% · ${readsProcessed} reads`);
+  },
+});
+
+// result: { NF54_3D7: { specific: 12, nonspecific: 3, mixed: 1, lowCoverage: 0 }, ... }
+```
+
+### Cancellation
+
+Pass an `AbortSignal` to stop an in-flight analysis. Aborting terminates the worker and rejects the promise:
+
+```ts
+const controller = new AbortController();
+// ... wire controller.abort() to a Cancel button ...
+
+try {
+  const result = await analyze(file, { signal: controller.signal });
+} catch (err) {
+  if (controller.signal.aborted) {
+    // cancelled — not a real error
+  } else {
+    throw err;
+  }
+}
+```
+
+### Streaming results & early exit
+
+`onPartialResult` delivers periodic classified snapshots (same shape as the final result) while the file streams. Combine it with the abort signal to stop early once you have a confident call — capture the last snapshot, then `abort()`:
+
+```ts
+const controller = new AbortController();
+let latest: AnalysisResult | undefined;
+
+try {
+  await analyze(file, {
+    signal: controller.signal,
+    onPartialResult: (snapshot) => {
+      latest = snapshot;
+      if (isConfident(snapshot)) controller.abort(); // stop reading the rest of the file
+    },
+  });
+} catch (err) {
+  if (!controller.signal.aborted) throw err;
+}
+
+// `latest` holds the snapshot at the point you decided to stop.
+```
+
+Snapshots are only computed when `onPartialResult` is provided, so omitting it adds no overhead.
+
+The `referenceUrl` option overrides the bundled `reference/25mer_rc_list.tsv` if you need to use an updated reference file:
+
+```ts
+const result = await analyze(file, { referenceUrl: '/custom/kmers.tsv' });
+```
+
+webpack 5 handles the `new URL('./counter.worker.js', import.meta.url)` pattern inside the library natively — no special loader or config required.
+
+## Repository layout
 
 ```
-bash run_kmc_new.sh /path/to/working_directory /path/to/sample_input_file.txt
+src/                    TypeScript library source
+reference/              Curated 25-mer reference data (bundled with the library)
+test-app/               Minimal Vite + vanilla HTML demo app
+dist/                   Build output (gitignored)
 ```
-- **/path/to/working_directory** is the path to the working directory for analysis to be run in (note lack of trailing backslash)
-- **/path/to/sample_input_file.txt** is the path to a txt file containing path(s) to fastq file(s) for sample, one path on each line. Sample name is extracted from file name 
-
-**parse_kmc_output.py:** Python script called by run_kmc_new.sh to parse kmc output and determine frequency of variable positions. Script first reads in kmers for variable positions provided in 25mer_rc_list.txt and stores in dictionaries based on whether they are strain specific or non-strain specific. Next, the output of kmc is read in and it determines the frequency of strain specific and non-specific kmers for each variable position. Based on the number of kmers found for each variable position, and the proportion of specific vs non-specific positions, plasmoFAST determines if each variable position is "Low Coverage", "Specific", "Nonspecific", or "Mixed". Pandas is then used to provide a stacked barplot of, for each strain, the proportion of positions found. 
-
-**25mer_rc_list.txt:** Tab-delimited text file containing curated list of 25mers used to differentiate Pf lab strains. For each variable position plasmoFAST uses, there are two lines, for the forward and reverse sequences of each kmer. Each line contains the chromosome, position of variable position, strain specific 25bp kmer, non-specific 25bp kmer, and strain. This file is read in by parse_kmc_output.py to be stored as a dictionary and searched for in user-provided sequencing data.
-
-### Output
-plasmoFAST outputs a {sample_name}_strain_output.txt file with the breakdown of "Low Coverage", "Specific", "Nonspecific", or "Mixed" positions found for each laboratory strain, as well as a stacked barplot representing this data.
