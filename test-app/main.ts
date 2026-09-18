@@ -1,9 +1,10 @@
-import { analyze } from '../src/index';
+import { analyze, callStrain } from '../src/index';
 import type { AnalysisResult, StrainResult } from '../src/index';
 
 const fileInput = document.getElementById('file-input') as HTMLInputElement;
 const progressBar = document.getElementById('progress-bar') as HTMLProgressElement;
 const progressLabel = document.getElementById('progress-label') as HTMLSpanElement;
+const mostLikelyStrain = document.getElementById('most-likely-strain') as HTMLParagraphElement;
 const resultsTable = document.getElementById('results-body') as HTMLTableSectionElement;
 const errorBox = document.getElementById('error') as HTMLDivElement;
 const status = document.getElementById('status') as HTMLParagraphElement;
@@ -25,12 +26,22 @@ function renderTable(result: AnalysisResult): void {
   }
 }
 
+function renderVerdict(result: AnalysisResult): void {
+  const call = callStrain(result);
+  const label =
+    call.verdict === 'strain' ? call.strain
+    : call.verdict === 'mixed' ? 'mixed laboratory strains'
+    : 'not one of laboratory strains tested';
+  mostLikelyStrain.textContent = `Most likely strain: ${label}`;
+}
+
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files?.[0];
   if (!file) return;
 
   errorBox.textContent = '';
   resultsTable.innerHTML = '';
+  mostLikelyStrain.textContent = '';
   progressBar.value = 0;
   elapsed.textContent = '';
   status.textContent = 'Analysing…';
@@ -54,6 +65,7 @@ fileInput.addEventListener('change', async () => {
       },
       onPartialResult: (partial) => {
         renderTable(partial);
+        renderVerdict(partial);
       },
     });
 
@@ -62,6 +74,7 @@ fileInput.addEventListener('change', async () => {
     elapsed.textContent = `Completed in ${totalSecs}s`;
 
     renderTable(result);
+    renderVerdict(result);
 
     progressBar.value = 100;
     progressLabel.textContent = '100%';
