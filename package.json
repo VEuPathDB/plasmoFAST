@@ -4,6 +4,10 @@
     "access": "public"
   },
   "version": "0.4.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VEuPathDB/plasmoFAST.git"
+  },
   "description": "Client-side k-mer detection of Plasmodium falciparum lab strains from FASTQ sequencing data",
   "packageManager": "yarn@4.12.0",
   "engines": {
