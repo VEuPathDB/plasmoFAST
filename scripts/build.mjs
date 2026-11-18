@@ -1,6 +1,8 @@
 import { build } from 'esbuild';
 import { execSync } from 'child_process';
-import { rmSync, mkdirSync } from 'fs';
+import { rmSync, mkdirSync, readFileSync } from 'fs';
+
+const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 
 rmSync('dist', { recursive: true, force: true });
 mkdirSync('dist');
@@ -22,6 +24,7 @@ await build({
   format: 'esm',
   outfile: 'dist/index.js',
   platform: 'browser',
+  define: { __PLASMOFAST_VERSION__: JSON.stringify(pkg.version) },
 });
 
 // 3. Emit TypeScript declarations
