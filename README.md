@@ -12,7 +12,7 @@ This library is a client-side TypeScript port of the original **plasmoFAST** too
 
 ## How it works
 
-Instead of running KMC to count all k-mers and then filtering, this library counts only the ~10,156 reference 25-mers (from `reference/25mer_rc_list.tsv`) directly from the FASTQ stream. The counting loop runs in a Web Worker so the UI stays responsive. Gzip-compressed `.fastq.gz` files are supported natively via the browser's `DecompressionStream` API.
+Instead of running KMC to count all k-mers and then filtering, this library counts only the ~10,834 reference 25-mers (from `reference/25mer_rc_list.tsv`) directly from the FASTQ stream. The counting loop runs in a Web Worker so the UI stays responsive. Gzip-compressed `.fastq.gz` files are supported natively via the browser's `DecompressionStream` API.
 
 ## Prerequisites
 
@@ -108,7 +108,7 @@ const result: AnalysisResult = await analyze(fastqFile, {
   },
 });
 
-// result: { NF54_3D7: { specific: 12, nonspecific: 3, mixed: 1, lowCoverage: 0 }, ... }
+// result: { NF54: { specific: 12, nonspecific: 3, mixed: 1, lowCoverage: 0 }, ... }
 ```
 
 ### Cancellation
