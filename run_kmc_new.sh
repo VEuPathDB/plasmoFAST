@@ -5,7 +5,7 @@ WORKING_DIR=$1
 #input file containing paths to fastq files for sample, one on each line
 SAMPLE_INPUT_FILE=$2
 
-KMER_LIST_PATH="25mer_rc_list.txt"
+KMER_LIST_PATH="reference/25mer_rc_list.tsv"
 
 #get sample name as text following last forward slash and before file extension in SAMPLE_INPUT_FILE
 if [[ "$SAMPLE_INPUT_FILE" =~ /([^/]+)\.[^/.]+$ ]]; then
