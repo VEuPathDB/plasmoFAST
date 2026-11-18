@@ -108,7 +108,7 @@ const result: AnalysisResult = await analyze(fastqFile, {
   },
 });
 
-// result: { NF54: { specific: 12, nonspecific: 3, mixed: 1, lowCoverage: 0 }, ... }
+// result: { NF54_3D7: { specific: 12, nonspecific: 3, mixed: 1, lowCoverage: 0 }, ... }
 ```
 
 ### Cancellation
